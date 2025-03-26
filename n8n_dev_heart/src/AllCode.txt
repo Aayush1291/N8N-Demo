@@ -1,0 +1,101 @@
+import React, { useState } from "react";
+
+const WEBHOOK_URL = "https://aayush1291.app.n8n.cloud/webhook/dev_hearts";
+
+const App: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const triggerWorkflow = async () => {
+    setLoading(true);
+    setMessage("Processing...");
+
+    try {
+      const response = await fetch(WEBHOOK_URL, { method: "POST" });
+      const data = await response.text();
+      setMessage("Workflow triggered successfully!");
+    } catch (error) {
+      setMessage("Error triggering workflow");
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ textAlign: "center", padding: "20px" }}>
+      <h1>Trigger n8n Workflow</h1>
+      <button onClick={triggerWorkflow} disabled={loading}>
+        {loading ? "Processing..." : "Start Workflow"}
+      </button>
+      <p>{message}</p>
+    </div>
+  );
+};
+
+export default App;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase
+const supabaseUrl = 'YOUR_SUPABASE_URL';
+const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+const PostsList = () => {
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const { data, error } = await supabase.from('posts').select('*');
+        if (error) throw error;
+        setPosts(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
+  if (loading) return <p>Loading posts...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold mb-4">Posts</h2>
+      <ul>
+        {posts.length > 0 ? (
+          posts.map((post) => (
+            <li key={post.id} className="mb-4 p-4 border rounded-lg shadow">
+              <h3 className="text-lg font-semibold">{post.title}</h3>
+              <p className="text-gray-700">{post.content}</p>
+            </li>
+          ))
+        ) : (
+          <p>No posts found.</p>
+        )}
+      </ul>
+    </div>
+  );
+};
+
+export default PostsList;
